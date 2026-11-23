@@ -106,7 +106,7 @@ function initNakCalculator(prefix,which){
   }
   if(which==='a'&&a===b){out(result,'नक्षत्र समाप्तिको ठीक सीमा हो। अध्ययन नोटको वर्गीकरणअनुसार अवस्था १ मानिए पनि जन्म नक्षत्र र दशास्वामी पुष्टि नगरी दशा शेषमा नसार्नुहोस्।');return;}
   last=which==='a'?a:b;
-  const working=which==='a'?(kind==='one'?'(६०/०० − '+$(prefix+'Prev').value+') + '+$(prefix+'Ishta').value:kind==='two'?$(prefix+'Ishta').value+' − '+$(prefix+'Current').value:kind==='three'?$(prefix+'Ishta').value+' − '+$(prefix+'Akshaya').value:'(६०/०० − '+$(prefix+'GrowthPrev').value+') + '+$(prefix+'Ishta').value+(day==='second'?' + ६०/००':'')):'';
+  const working=which==='a'?(kind==='one'?'(६०/०० − '+$(prefix+'Prev').value+') + '+$(prefix+'Ishta').value:kind==='two'?$(prefix+'Ishta').value+' − '+$(prefix+'Current').value:kind==='three'?$(prefix+'Ishta').value+' − '+$(prefix+'Akshaya').value:'(६०/०० − '+$(prefix+'GrowthPrev').value+') + '+$(prefix+'Ishta').value+($(prefix+'GrowthDay').value==='second'?' + ६०/००':'')):'';
   out(result,(which==='a'?'भयात: ':'भभोग: ')+fmtGP(last)+'। सूत्र: '+formula+'।'+(working?' गणना: '+working+' = '+fmtGP(last)+'।':''));
   use.hidden=false;
  });
