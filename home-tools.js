@@ -101,9 +101,10 @@ function initNakCalculator(prefix,which){
    b=7200-prev+ending;
    formula=which==='a'?'(६० − गत नक्षत्र अन्त्य-मान) + इष्टकाल'+(day==='second'?' + ६०':''):'(६० − गत नक्षत्र अन्त्य-मान) + ६० + दोस्रो सूर्योदयपछिको अन्त्य-मान';
   }
-  if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<=0||a>=b){
+  if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<=0||a>b){
    out(result,'नतिजा मान्य छैन: ० ≤ भयात < भभोग हुनुपर्छ। नक्षत्र अन्त्य-मान, जन्मको अवस्था र इष्टकाल जाँच्नुहोस्।');return;
   }
+  if(a===b){out(result,'नक्षत्र समाप्तिको ठीक सीमा हो। अध्ययन नोटको वर्गीकरणअनुसार अवस्था १ मानिए पनि जन्म नक्षत्र र दशास्वामी पुष्टि नगरी दशा शेषमा नसार्नुहोस्।');return;}
   last=which==='a'?a:b;
   out(result,(which==='a'?'भयात: ':'भभोग: ')+fmtGP(last)+'। सूत्र: '+formula+'।');
   use.hidden=false;
