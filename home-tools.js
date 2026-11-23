@@ -59,4 +59,48 @@ $('htDashaGo').addEventListener('click',()=>{
  const remaining=years*(b-a)/b,days=Math.round(remaining*360),y=Math.floor(days/360),mo=Math.floor(days%360/30),d=days%30;
  out('htDashaOut',y+' वर्ष '+mo+' महिना '+d+' दिन · '+remaining.toFixed(4)+' वर्ष (३६०-दिने वर्ष)');
 });
+const bbCase=$('htBBCase'),bbOne=$('htBBOne'),bbTwo=$('htBBTwo'),bbThree=$('htBBThree'),bbUse=$('htBBUse');
+const fmtGP=n=>Math.floor(n/60)+' घडी '+String(n%60).padStart(2,'0')+' पला';
+const inputGP=id=>{const v=parseGP($(id).value);return v!==null&&v<=3600?v:null;};
+const updateBB=()=>{
+ const v=bbCase.value;
+ bbOne.hidden=v!=='one';bbTwo.hidden=v!=='two';bbThree.hidden=v!=='three';
+ bbUse.hidden=true;out('htBBOut','सम्बन्धित नक्षत्रमान घडी/पलामा भर्नुहोस्।');
+};
+bbCase.addEventListener('change',updateBB);
+let bbLast=null;
+$('htBBGo').addEventListener('click',()=>{
+ bbLast=null;bbUse.hidden=true;
+ const kind=bbCase.value,ist=inputGP('htBBIshta');
+ if(ist===null||ist>=3600){out('htBBOut','इष्टकाल ० देखि ६० घडीभन्दा कम हुनुपर्छ।');return;}
+ let a,b,formula;
+ if(kind==='one'){
+  const prev=inputGP('htBBPrev'),today=inputGP('htBBToday');
+  if(prev===null||today===null){out('htBBOut','अघिल्लो र सोही दिनको नक्षत्रमान जाँच्नुहोस्।');return;}
+  a=3600-prev+ist;b=3600-prev+today;formula='(६० − अघिल्लो नक्षत्रमान) + इष्टकाल; (६० − अघिल्लो नक्षत्रमान) + जन्म नक्षत्रमान';
+  if(today>=ist){out('htBBOut','अवस्था १ मा सोही दिनको जन्म नक्षत्रमान इष्टकालभन्दा कम हुनुपर्छ।');return;}
+ }else if(kind==='two'){
+  const today=inputGP('htBBCurrent'),next=inputGP('htBBNext');
+  if(today===null||next===null){out('htBBOut','सोही र आगामी दिनको नक्षत्रमान जाँच्नुहोस्।');return;}
+  a=ist-today;b=3600-today+next;formula='इष्टकाल − सोही दिनको नक्षत्रमान; (६० − सोही दिनको नक्षत्रमान) + आगामी दिनको नक्षत्रमान';
+  if(ist<today){out('htBBOut','अवस्था २ मा इष्टकाल सोही दिनको नक्षत्रमानभन्दा कम हुन सक्दैन।');return;}
+ }else{
+  const ak=inputGP('htBBAkshaya'),ksh=inputGP('htBBKshaya');
+  if(ak===null||ksh===null){out('htBBOut','अक्षय र क्षय नक्षत्रको घडीपला जाँच्नुहोस्।');return;}
+  a=ist-ak;b=ksh-ak;formula='इष्टकाल − अक्षय नक्षत्र; क्षय नक्षत्र घडीपला − अक्षय नक्षत्र घडीपला';
+ }
+ if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<=0||a>=b){
+  out('htBBOut','नतिजा मान्य छैन: ० ≤ भयात < भभोग हुनुपर्छ। नक्षत्रमान र अवस्था जाँच्नुहोस्।');return;
+ }
+ bbLast={a,b};
+ out('htBBOut','भयात: '+fmtGP(a)+' · भभोग: '+fmtGP(b)+'। सूत्र: '+formula+'।');
+ bbUse.hidden=false;
+});
+bbUse.addEventListener('click',()=>{
+ if(!bbLast)return;
+ $('htBhayat').value=Math.floor(bbLast.a/60)+'/'+String(bbLast.a%60).padStart(2,'0');
+ $('htBhavog').value=Math.floor(bbLast.b/60)+'/'+String(bbLast.b%60).padStart(2,'0');
+ out('htBBOut','भयात र भभोग दशा शेषमा भरिएका छन्। जन्म नक्षत्रको स्वामी छानेर दशा शेष निकाल्नुहोस्।');
+});
+
 })();
