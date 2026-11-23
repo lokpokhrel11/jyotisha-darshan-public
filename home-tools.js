@@ -73,38 +73,38 @@ function initNakCalculator(prefix,which){
  mode.addEventListener('change',change);
  $(prefix+'Go').addEventListener('click',()=>{
   last=null;use.hidden=true;
-  const kind=mode.value,ist=inputGP(prefix+'Ishta');
-  if(ist===null||ist>=3600){out(result,'इष्टकाल ० देखि ६० घडीभन्दा कम हुनुपर्छ।');return;}
+  const kind=mode.value,ist=which==='a'?inputGP(prefix+'Ishta'):null;
+  if(which==='a'&&(ist===null||ist>=3600)){out(result,'इष्टकाल ० देखि ६० घडीभन्दा कम हुनुपर्छ।');return;}
   let a,b,formula;
   if(kind==='one'){
    const prev=inputGP(prefix+'Prev'),today=inputGP(prefix+'Today');
    if(prev===null||today===null){out(result,'अघिल्लो र सोही दिनको नक्षत्र अन्त्य-मान जाँच्नुहोस्।');return;}
-   if(ist>today){out(result,'अवस्था १ मा इष्टकाल सोही दिनको नक्षत्र अन्त्य-मानभन्दा बढी हुन सक्दैन।');return;}
-   a=3600-prev+ist;b=3600-prev+today;
+   if(which==='a'&&ist>today){out(result,'अवस्था १ मा इष्टकाल सोही दिनको नक्षत्र अन्त्य-मानभन्दा बढी हुन सक्दैन।');return;}
+   a=which==='a'?3600-prev+ist:0;b=3600-prev+today;
    formula=which==='a'?'(६० − गत नक्षत्र अन्त्य-मान) + इष्टकाल':'(६० − गत नक्षत्र अन्त्य-मान) + जन्म नक्षत्र अन्त्य-मान';
   }else if(kind==='two'){
    const today=inputGP(prefix+'Current'),next=inputGP(prefix+'Next');
    if(today===null||next===null){out(result,'सोही र आगामी दिनको नक्षत्र अन्त्य-मान जाँच्नुहोस्।');return;}
-   if(ist<=today){out(result,'अवस्था २ मा इष्टकाल सोही दिनको नक्षत्र अन्त्य-मानभन्दा बढी हुनुपर्छ।');return;}
-   a=ist-today;b=3600-today+next;
+   if(which==='a'&&ist<=today){out(result,'अवस्था २ मा इष्टकाल सोही दिनको नक्षत्र अन्त्य-मानभन्दा बढी हुनुपर्छ।');return;}
+   a=which==='a'?ist-today:0;b=3600-today+next;
    formula=which==='a'?'इष्टकाल − सोही दिनको नक्षत्र अन्त्य-मान':'(६० − सोही दिनको नक्षत्र अन्त्य-मान) + आगामी दिनको अन्त्य-मान';
   }else if(kind==='three'){
    const ak=inputGP(prefix+'Akshaya'),ksh=inputGP(prefix+'Kshaya');
    if(ak===null||ksh===null){out(result,'अक्षय र क्षय नक्षत्रको अन्त्य-मान जाँच्नुहोस्।');return;}
-   if(!(ak<ist&&ist<ksh)){out(result,'क्षय नक्षत्रमा जन्मका लागि इष्टकाल अक्षय नक्षत्रको अन्त्यपछि र क्षय नक्षत्रको अन्त्यअघि हुनुपर्छ।');return;}
-   a=ist-ak;b=ksh-ak;
+   if(which==='a'&&!(ak<ist&&ist<ksh)){out(result,'क्षय नक्षत्रमा जन्मका लागि इष्टकाल अक्षय नक्षत्रको अन्त्यपछि र क्षय नक्षत्रको अन्त्यअघि हुनुपर्छ।');return;}
+   a=which==='a'?ist-ak:0;b=ksh-ak;
    formula=which==='a'?'इष्टकाल − अक्षय नक्षत्रको अन्त्य-मान':'क्षय नक्षत्रको अन्त्य-मान − अक्षय नक्षत्रको अन्त्य-मान';
   }else{
-   const prev=inputGP(prefix+'GrowthPrev'),ending=inputGP(prefix+'GrowthEnd'),day=$(prefix+'GrowthDay').value;
+   const prev=inputGP(prefix+'GrowthPrev'),ending=inputGP(prefix+'GrowthEnd'),day=which==='a'?$(prefix+'GrowthDay').value:'first';
    if(prev===null||ending===null){out(result,'वृद्धि नक्षत्रको अघिल्लो र अन्तिम अन्त्य-मान जाँच्नुहोस्।');return;}
-   a=3600-prev+ist+(day==='second'?3600:0);
+   a=which==='a'?3600-prev+ist+(day==='second'?3600:0):0;
    b=7200-prev+ending;
    formula=which==='a'?'(६० − गत नक्षत्र अन्त्य-मान) + इष्टकाल'+(day==='second'?' + ६०':''):'(६० − गत नक्षत्र अन्त्य-मान) + ६० + दोस्रो सूर्योदयपछिको अन्त्य-मान';
   }
   if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<=0||a>b){
    out(result,'नतिजा मान्य छैन: ० ≤ भयात < भभोग हुनुपर्छ। नक्षत्र अन्त्य-मान, जन्मको अवस्था र इष्टकाल जाँच्नुहोस्।');return;
   }
-  if(a===b){out(result,'नक्षत्र समाप्तिको ठीक सीमा हो। अध्ययन नोटको वर्गीकरणअनुसार अवस्था १ मानिए पनि जन्म नक्षत्र र दशास्वामी पुष्टि नगरी दशा शेषमा नसार्नुहोस्।');return;}
+  if(which==='a'&&a===b){out(result,'नक्षत्र समाप्तिको ठीक सीमा हो। अध्ययन नोटको वर्गीकरणअनुसार अवस्था १ मानिए पनि जन्म नक्षत्र र दशास्वामी पुष्टि नगरी दशा शेषमा नसार्नुहोस्।');return;}
   last=which==='a'?a:b;
   out(result,(which==='a'?'भयात: ':'भभोग: ')+fmtGP(last)+'। सूत्र: '+formula+'।');
   use.hidden=false;
