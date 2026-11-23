@@ -78,7 +78,7 @@ $('htBBGo').addEventListener('click',()=>{
   const prev=inputGP('htBBPrev'),today=inputGP('htBBToday');
   if(prev===null||today===null){out('htBBOut','अघिल्लो र सोही दिनको नक्षत्रमान जाँच्नुहोस्।');return;}
   a=3600-prev+ist;b=3600-prev+today;formula='(६० − अघिल्लो नक्षत्रमान) + इष्टकाल; (६० − अघिल्लो नक्षत्रमान) + जन्म नक्षत्रमान';
-  if(today>=ist){out('htBBOut','अवस्था १ मा सोही दिनको जन्म नक्षत्रमान इष्टकालभन्दा कम हुनुपर्छ।');return;}
+  if(today<ist){out('htBBOut','अवस्था १ मा जन्म नक्षत्रमान इष्टकालभन्दा कम हुन सक्दैन।');return;}
  }else if(kind==='two'){
   const today=inputGP('htBBCurrent'),next=inputGP('htBBNext');
   if(today===null||next===null){out('htBBOut','सोही र आगामी दिनको नक्षत्रमान जाँच्नुहोस्।');return;}
