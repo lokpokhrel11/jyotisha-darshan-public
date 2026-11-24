@@ -5,6 +5,8 @@ const $=id=>document.getElementById(id);
 const out=(id,s)=>{$(id).textContent=s;};
 const invalidate=id=>out(id,'मान परिवर्तन भएको छ। पुनः गणना गर्नुहोस्।');
 const changed=id=>$(id).dispatchEvent(new Event('input',{bubbles:true}));
+function downstream(ids){for(const id of ids)invalidate(id);}
+
 const digits=n=>String(n).padStart(2,'0');
 const number=id=>$(id).value.trim()===''?NaN:Number($(id).value);
 const valid=(v,min,max)=>Number.isFinite(v)&&v>=min&&v<=max;
@@ -132,7 +134,7 @@ function initNakCalculator(prefix,which){
   use.hidden=false;
  });
  use.addEventListener('click',()=>{
-  if(last===null)return;
+  if(last===null||use.hidden)return;
   const target=which==='a'?'htBhayat':'htBhavog';
   const v=Math.round(last*120)/2;$(target).value=Math.floor(v/3600)+'/'+digits(Math.floor(v%3600/60))+(v%60?'/'+digits(v%60):'');$(which==='a'?'htNameA':'htNameB').value=$(target).value;invalidate('htNameOut');invalidate('htDashaOut');
   out(result,(which==='a'?'भयात':'भभोग')+' दशा शेष र नामकरण गणनायन्त्रमा सारिएको छ।');
@@ -162,4 +164,17 @@ $('htNameGo').addEventListener('click',()=>{
 });
 
 for(const [ids,result] of [[['htSunrise','htDistrict','htSunriseMode','htLonDeg','htLonMin','htLonSec','htManualOffset','htOffsetReference'],'htSunriseOut'],[['htHours','htMinutes','htSeconds'],'htGhadiOut'],[['htBirth','htLocalSunrise','htPrevious'],'htIstOut'],[['htBhayat','htBhavog','htLord'],'htDashaOut'],[['htSun','htMoon'],'htTithiOut'],[['htNakDegree'],'htNakOut'],[['htNameNak','htNameA','htNameB'],'htNameOut']])for(const id of ids){$(id).addEventListener('input',()=>invalidate(result));$(id).addEventListener('change',()=>invalidate(result));}
+// Preserve manual inputs but mark dependent results as requiring recalculation.
+for(const id of ['htSunrise','htDistrict','htSunriseMode','htLonDeg','htLonMin','htLonSec','htManualOffset','htOffsetReference','htBirth','htLocalSunrise','htPrevious']){
+ for(const event of ['input','change'])$(id).addEventListener(event,()=>{
+ downstream(['htIstOut','htBYOut','htNameOut','htDashaOut']);
+ $('htBYUse').hidden=true;
+ });
+}
+for(const prefix of ['htBY','htBG']){
+ const card=$(prefix+'Case').closest('.home-tool-card');
+ for(const event of ['input','change'])card.addEventListener(event,()=>downstream(['htNameOut','htDashaOut']));
+}
+for(const id of ['htNameNak','htNameA','htNameB'])for(const event of ['input','change'])$(id).addEventListener(event,()=>invalidate('htDashaOut'));
+
 })();
