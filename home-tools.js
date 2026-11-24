@@ -49,7 +49,7 @@ $('htIstGo').addEventListener('click',()=>{
  const halfVipala=elapsed*5,gh=Math.floor(halfVipala/7200),pa=Math.floor((halfVipala%7200)/120),vi=(halfVipala%120)/2;
  out('htIstOut',gh+' घडी '+pa+' पला '+vi+' विपला'+(vi?' · कापीको पूर्ण पला पद्धति: '+gh+'/'+digits(pa):''));
 });
-const parseGP=v=>{v=v.replace(/[०-९]/g,c=>String('०१२३४५६७८९'.indexOf(c)));const m=/^\s*(\d+)\s*\/\s*(\d+)(?:\s*\/\s*(\d+))?\s*$/.exec(v);if(!m)return null;const g=+m[1],p=+m[2],vi=+(m[3]||0);return g<=120&&p<60&&vi<60&&(g<120||p+vi===0)?g*60+p+vi/60:null;};
+const parseGP=v=>{v=v.replace(/[०-९]/g,c=>String('०१२३४५६७८९'.indexOf(c)));const m=/^\s*(\d+)\s*\/\s*(\d+)(?:\s*\/\s*(\d+(?:\.5)?))?\s*$/.exec(v);if(!m)return null;const g=+m[1],p=+m[2],vi=+(m[3]||0);return g<=120&&p<60&&vi<60&&(g<120||p+vi===0)?g*60+p+vi/60:null;};
 const dashaYears={sun:6,moon:10,mars:7,rahu:18,jupiter:16,saturn:19,mercury:17,ketu:7,venus:20};
 $('htDashaGo').addEventListener('click',()=>{
  const a=parseGP($('htBhayat').value),b=parseGP($('htBhavog').value),years=dashaYears[$('htLord').value];
@@ -61,8 +61,8 @@ $('htDashaGo').addEventListener('click',()=>{
 });
 
 
-const fmtGP=n=>{const v=Math.round(n*60);return Math.floor(v/3600)+' घडी '+digits(Math.floor(v%3600/60))+' पला'+(v%60?' '+digits(v%60)+' विपला':'');};
-const inputGP=id=>{const v=parseGP($(id).value);return v!==null&&v<=3600?v:null;};
+const fmtGP=n=>{const v=Math.round(n*120)/2;return Math.floor(v/3600)+' घडी '+digits(Math.floor(v%3600/60))+' पला'+(v%60?' '+digits(v%60)+' विपला':'');};
+const inputGP=id=>{const v=$(id)?parseGP($(id).value):null;return v!==null&&v<=3600?v:null;};
 function initNakCalculator(prefix,which){
  const mode=$(prefix+'Case'),result=prefix+'Out',use=$(prefix+'Use');
  let last=null;
@@ -71,6 +71,7 @@ function initNakCalculator(prefix,which){
   last=null;use.hidden=true;out(result,'पञ्चाङ्गमा दिइएको नक्षत्रको अन्त्य-मान घडी/पलामा राख्नुहोस्।');
  }
  mode.addEventListener('change',change);
+ mode.closest('.home-tool-card').addEventListener('input',()=>{last=null;use.hidden=true;});
  $(prefix+'Go').addEventListener('click',()=>{
   last=null;use.hidden=true;
   const kind=mode.value,ist=which==='a'?inputGP(prefix+'Ishta'):null;
@@ -85,13 +86,13 @@ function initNakCalculator(prefix,which){
   }else if(kind==='two'){
    const today=inputGP(prefix+'Current'),next=inputGP(prefix+'Next');
    if(today===null||(which==='b'&&next===null)){out(result,'सम्बन्धित दिनको नक्षत्र अन्त्य-मान जाँच्नुहोस्।');return;}
-   if(which==='a'&&ist<=today){out(result,'अवस्था २ मा इष्टकाल सोही दिनको नक्षत्र अन्त्य-मानभन्दा बढी हुनुपर्छ।');return;}
+   if(which==='a'&&ist<today){out(result,'अवस्था २ मा इष्टकाल सोही दिनको नक्षत्र अन्त्य-मानभन्दा कम हुनु हुँदैन।');return;}
    a=which==='a'?ist-today:0;b=which==='a'?3600:3600-today+next;
    formula=which==='a'?'इष्टकाल − सोही दिनको नक्षत्र अन्त्य-मान':'(६० − सोही दिनको नक्षत्र अन्त्य-मान) + आगामी दिनको अन्त्य-मान';
   }else if(kind==='three'){
    const ak=inputGP(prefix+'Akshaya'),ksh=inputGP(prefix+'Kshaya');
    if(ak===null||ksh===null){out(result,'अक्षय र क्षय नक्षत्रको अन्त्य-मान जाँच्नुहोस्।');return;}
-   if(which==='a'&&!(ak<ist&&ist<ksh)){out(result,'क्षय नक्षत्रमा जन्मका लागि इष्टकाल अक्षय नक्षत्रको अन्त्यपछि र क्षय नक्षत्रको अन्त्यअघि हुनुपर्छ।');return;}
+   if(which==='a'&&!(ak<=ist&&ist<ksh)){out(result,'क्षय नक्षत्रमा जन्मका लागि इष्टकाल अक्षय नक्षत्रको अन्त्यपछि र क्षय नक्षत्रको अन्त्यअघि हुनुपर्छ।');return;}
    a=which==='a'?ist-ak:0;b=ksh-ak;
    formula=which==='a'?'इष्टकाल − अक्षय नक्षत्रको अन्त्य-मान':'क्षय नक्षत्रको अन्त्य-मान − अक्षय नक्षत्रको अन्त्य-मान';
   }else{
@@ -104,16 +105,16 @@ function initNakCalculator(prefix,which){
   if(!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<=0||(which==='b'&&a>b)||(which==='a'&&kind!=='two'&&a>b)){
    out(result,'नतिजा मान्य छैन: ० ≤ भयात < भभोग हुनुपर्छ। नक्षत्र अन्त्य-मान, जन्मको अवस्था र इष्टकाल जाँच्नुहोस्।');return;
   }
-  if(which==='a'&&a===b){out(result,'नक्षत्र समाप्तिको ठीक सीमा हो। अध्ययन नोटको वर्गीकरणअनुसार अवस्था १ मानिए पनि जन्म नक्षत्र र दशास्वामी पुष्टि नगरी दशा शेषमा नसार्नुहोस्।');return;}
+  if(which==='a'&&(a===0||a===b)){out(result,'नक्षत्र परिवर्तनको ठीक सीमा हो। पञ्चाङ्गको शुद्धता र जन्म नक्षत्र पुष्टि नगरी दशा शेषमा नसार्नुहोस्।');return;}
   last=which==='a'?a:b;
-  const working=which==='a'?(kind==='one'?'(६०/०० − '+$(prefix+'Prev').value+') + '+$(prefix+'Ishta').value:kind==='two'?$(prefix+'Ishta').value+' − '+$(prefix+'Current').value:kind==='three'?$(prefix+'Ishta').value+' − '+$(prefix+'Akshaya').value:'(६०/०० − '+$(prefix+'GrowthPrev').value+') + '+$(prefix+'Ishta').value+($(prefix+'GrowthDay').value==='second'?' + ६०/००':'')):'';
+  const working=which==='a'?(kind==='one'?'(६०/०० − '+$(prefix+'Prev').value+') + '+$(prefix+'Ishta').value:kind==='two'?$(prefix+'Ishta').value+' − '+$(prefix+'Current').value:kind==='three'?$(prefix+'Ishta').value+' − '+$(prefix+'Akshaya').value:'(६०/०० − '+$(prefix+'GrowthPrev').value+') + '+$(prefix+'Ishta').value+($(prefix+'GrowthDay').value==='second'?' + ६०/००':'')):(kind==='one'?'(६०/०० − '+$(prefix+'Prev').value+') + '+$(prefix+'Today').value:kind==='two'?'(६०/०० − '+$(prefix+'Current').value+') + '+$(prefix+'Next').value:kind==='three'?$(prefix+'Kshaya').value+' − '+$(prefix+'Akshaya').value:'(६०/०० − '+$(prefix+'GrowthPrev').value+') + ६०/०० + '+$(prefix+'GrowthEnd').value);
   out(result,(which==='a'?'भयात: ':'भभोग: ')+fmtGP(last)+'। सूत्र: '+formula+'।'+(working?' गणना: '+working+' = '+fmtGP(last)+'।':''));
   use.hidden=false;
  });
  use.addEventListener('click',()=>{
   if(last===null)return;
   const target=which==='a'?'htBhayat':'htBhavog';
-  const v=Math.round(last*60);$(target).value=Math.floor(v/3600)+'/'+digits(Math.floor(v%3600/60))+(v%60?'/'+digits(v%60):'');
+  const v=Math.round(last*120)/2;$(target).value=Math.floor(v/3600)+'/'+digits(Math.floor(v%3600/60))+(v%60?'/'+digits(v%60):'');
   out(result,(which==='a'?'भयात':'भभोग')+' दशा शेष गणनायन्त्रमा सारिएको छ।');
  });
 }
