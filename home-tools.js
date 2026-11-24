@@ -125,14 +125,14 @@ const namingSigns=['मेष','वृष','मिथुन','कर्कट','
 const namingLords=['मङ्गल','शुक्र','बुध','चन्द्र','सूर्य','बुध','शुक्र','मङ्गल','बृहस्पति','शनि','शनि','बृहस्पति'];
 function namingResult(i,a,b){
  if(!Number.isInteger(i)||i<0||i>=27||a===null||b===null||a<0||b<=0||a>=b)return null;
- const A=Math.round(a*120),B=Math.round(b*120),p=Math.floor(4*A/B),r=Math.floor((4*i+p)/9);
- return {p,r,sy:namingData[i].syll[p],boundary:4*A%B===0};
+ const A=Math.round(a*120),B=Math.round(b*120),p=Math.max(0,Math.ceil(4*A/B)-1),r=Math.floor((4*i+p)/9);
+ return {p,r,sy:namingData[i].syll[p],boundary:A>0&&4*A%B===0};
 }
 $('htNameLoad').addEventListener('click',()=>{$('htNameA').value=$('htBhayat').value;$('htNameB').value=$('htBhavog').value;out('htNameOut','मान सारिएका छन्। जन्म नक्षत्र पुष्टि गरी गणना गर्नुहोस्।');});
 $('htNameGo').addEventListener('click',()=>{
  const i=Number($('htNameNak').value),a=parseGP($('htNameA').value),b=parseGP($('htNameB').value),r=namingResult(i,a,b);
  if(!r){out('htNameOut','मान जाँच्नुहोस्: भयात शून्य वा सोभन्दा बढी र भभोगभन्दा कम हुनुपर्छ।');return;}
- out('htNameOut','एक चरणको अवधि: '+fmtGP(b/4)+' (प्रदर्शित मान नजिकको आधा विपलासम्म) । भयात: '+fmtGP(a)+'। '+namingData[i].name+' · चरण '+(r.p+1)+' · नामाक्षर: '+r.sy+' · जन्मराशि: '+namingSigns[r.r]+' · राशिस्वामी: '+namingLords[r.r]+' · जन्म दशास्वामी: '+namingData[i].lord+'।'+(r.boundary?' ठीक चरण-सीमा: अर्को चरणको आरम्भ मानिएको छ; पञ्चाङ्गको शुद्धता पुष्टि गर्नुहोस्।':''));
+ out('htNameOut','एक चरणको अवधि: '+fmtGP(b/4)+' (प्रदर्शित मान नजिकको आधा विपलासम्म) । भयात: '+fmtGP(a)+'। '+namingData[i].name+' · चरण '+(r.p+1)+' · नामाक्षर: '+r.sy+' · जन्मराशि: '+namingSigns[r.r]+' · राशिस्वामी: '+namingLords[r.r]+' · जन्म दशास्वामी: '+namingData[i].lord+'।'+(r.boundary?' ठीक चरण-सीमा: अध्ययन नोटको विधिअनुसार यही चरणको अन्तिम सीमा मानिएको छ। कोणीय विधिमा अर्को चरण सुरु हुन्छ।':''));
 });
 
 })();
