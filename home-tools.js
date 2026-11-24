@@ -132,7 +132,10 @@ $('htNameLoad').addEventListener('click',()=>{$('htNameA').value=$('htBhayat').v
 $('htNameGo').addEventListener('click',()=>{
  const i=Number($('htNameNak').value),a=parseGP($('htNameA').value),b=parseGP($('htNameB').value),r=namingResult(i,a,b);
  if(!r){out('htNameOut','मान जाँच्नुहोस्: भयात शून्य वा सोभन्दा बढी र भभोगभन्दा कम हुनुपर्छ।');return;}
- out('htNameOut','एक चरणको अवधि: '+fmtGP(b/4)+' (प्रदर्शित मान नजिकको आधा विपलासम्म) । भयात: '+fmtGP(a)+'। '+namingData[i].name+' · चरण '+(r.p+1)+' · नामाक्षर: '+r.sy+' · जन्मराशि: '+namingSigns[r.r]+' · राशिस्वामी: '+namingLords[r.r]+' · जन्म दशास्वामी: '+namingData[i].lord+'।'+(r.boundary?' ठीक चरण-सीमा: अध्ययन नोटको विधिअनुसार यही चरणको अन्तिम सीमा मानिएको छ। कोणीय विधिमा अर्को चरण सुरु हुन्छ।':''));
+ const lordKeys={केतु:'ketu',शुक्र:'venus',सूर्य:'sun',चन्द्र:'moon',मङ्गल:'mars',राहु:'rahu',बृहस्पति:'jupiter',शनि:'saturn',बुध:'mercury'};
+ $('htBhayat').value=$('htNameA').value;$('htBhavog').value=$('htNameB').value;$('htLord').value=lordKeys[namingData[i].lord];
+ out('htDashaOut','नामकरणबाट भयात, भभोग र दशास्वामी सारिएका छन्। दशा शेष गणना गर्नुहोस्।');
+ out('htNameOut','एक चरणको अवधि: '+fmtGP(b/4)+' (प्रदर्शित मान नजिकको आधा विपलासम्म) । भयात: '+fmtGP(a)+'। '+namingData[i].name+' · चरण '+(r.p+1)+' · नामाक्षर: '+r.sy+' · जन्मराशि: '+namingSigns[r.r]+' · राशिस्वामी: '+namingLords[r.r]+' · जन्म दशास्वामी: '+namingData[i].lord+'।'+(r.boundary?' ठीक चरण-सीमा: अध्ययन नोटको विधिअनुसार यही चरणको अन्तिम सीमा मानिएको छ। कोणीय विधिमा अर्को चरण सुरु हुन्छ।':'')+' भयात, भभोग र दशास्वामी दशा शेष गणनामा सारिएका छन्।');
 });
 
 })();
