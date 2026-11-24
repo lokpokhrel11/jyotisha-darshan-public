@@ -22,20 +22,18 @@ $('htGhadiGo').addEventListener('click',()=>{
  const vipala=((h*60+m)*60+sec)*2.5,gh=Math.floor(vipala/3600),pa=Math.floor(vipala%3600/60),vi=vipala%60;
  out('htGhadiOut',gh+' घडी '+pa+' पला '+vi+' विपला');
 });
+const angle=v=>{v=v.trim().replace(/[०-९]/g,c=>String('०१२३४५६७८९'.indexOf(c)));if(/^\d+(?:\.\d+)?$/.test(v)){const n=Number(v);return n<360?Math.min(1295999999,Math.round(n*3600000)):null;}const p=v.split('/');if(p.length!==4||p.some(x=>!/^\d+$/.test(x)))return null;const [r,d,m,sec]=p.map(Number);return r<12&&d<30&&m<60&&sec<60?((r*30+d)*3600+m*60+sec)*1000:null;};
 $('htTithiGo').addEventListener('click',()=>{
- const s=number('htSun'),m=number('htMoon');
- if(!valid(s,0,360)||!valid(m,0,360)||s===360||m===360){out('htTithiOut','० देखि ३६०° भन्दा कम अंश राख्नुहोस्।');return;}
- const delta=(m-s+360)%360,idx=Math.min(29,Math.floor(delta/12)),names=['प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पञ्चमी','षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी','एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी','पूर्णिमा'];
- const phase=idx<15?'शुक्ल':'कृष्ण',n=idx%15;
- out('htTithiOut',phase+' '+(idx===29?'औँसी':names[n])+' · कोणीय अन्तर '+delta.toFixed(2)+'°');
+ const s=angle($('htSun').value),m=angle($('htMoon').value);
+ if(s===null||m===null){out('htTithiOut','दशमलव अंश वा राशि/अंश/कला/विकला (राशि ०–११) राख्नुहोस्।');return;}
+ const delta=(m-s+1296000000)%1296000000,idx=Math.floor(delta/43200000),names=['प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पञ्चमी','षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी','एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी','पूर्णिमा'];
+ out('htTithiOut',(idx<15?'शुक्ल':'कृष्ण')+' '+(idx===29?'औँसी':names[idx%15])+' · कोणीय अन्तर '+(delta/3600000).toFixed(6)+'°'+(delta%43200000===0?' · ठीक तिथि परिवर्तनको सीमा; नयाँ तिथि मानिएको छ।':''));
 });
 $('htNakGo').addEventListener('click',()=>{
- const d=number('htNakDegree');
- if(!valid(d,0,360)||d===360){out('htNakOut','० देखि ३६०° भन्दा कम अंश राख्नुहोस्।');return;}
- const part=Math.min(107,Math.floor(d/(360/108)));
- const idx=Math.floor(part/4),pada=part%4+1;
- const names=['अश्विनी','भरणी','कृत्तिका','रोहिणी','मृगशिरा','आर्द्रा','पुनर्वसु','पुष्य','आश्लेषा','मघा','पूर्वाफाल्गुनी','उत्तराफाल्गुनी','हस्त','चित्रा','स्वाती','विशाखा','अनुराधा','ज्येष्ठा','मूल','पूर्वाषाढा','उत्तराषाढा','श्रवण','धनिष्ठा','शतभिषा','पूर्वाभाद्रपदा','उत्तराभाद्रपदा','रेवती'];
- out('htNakOut',names[Math.min(idx,26)]+' · '+Math.min(pada,4)+' पाउ');
+ const d=angle($('htNakDegree').value);
+ if(d===null){out('htNakOut','चन्द्रमाको निरयण देशान्तर दशमलव अंश वा राशि/अंश/कला/विकला (राशि ०–११) मा राख्नुहोस्।');return;}
+ const part=Math.floor(d/12000000),idx=Math.floor(part/4),p=part%4,r=Math.floor(part/9);
+ out('htNakOut',namingData[idx].name+' · चरण '+(p+1)+' · नामाक्षर: '+namingData[idx].syll[p]+' · राशि: '+namingSigns[r]+' · राशिस्वामी: '+namingLords[r]+' · दशास्वामी: '+namingData[idx].lord+(d%12000000===0?' · ठीक चरण-सीमा; नयाँ चरण मानिएको छ।':''));
 });
 
 const timeSeconds=v=>{const m=/^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(v||'');if(!m)return null;const h=+m[1],mn=+m[2],sc=+(m[3]||0);return h<24&&mn<60&&sc<60?h*3600+mn*60+sc:null;};
@@ -57,7 +55,7 @@ $('htDashaGo').addEventListener('click',()=>{
  if(a===b){out('htDashaOut','नक्षत्र अन्त्य-सीमा: अर्को नक्षत्र र दशास्वामी पुष्टि गर्नुहोस्।');return;}
  if(a<0||a>b){out('htDashaOut','भयात शून्यभन्दा कम वा भभोगभन्दा ठूलो हुन सक्दैन।');return;}
  const remaining=years*(b-a)/b,days=Math.round(remaining*360),y=Math.floor(days/360),mo=Math.floor(days%360/30),d=days%30;
- out('htDashaOut',y+' वर्ष '+mo+' महिना '+d+' दिन · '+remaining.toFixed(4)+' वर्ष (३६०-दिने वर्ष)');
+ out('htDashaOut',y+' वर्ष '+mo+' महिना '+d+' दिन · गणना: ('+fmtGP(b)+' − '+fmtGP(a)+') ÷ '+fmtGP(b)+' × '+years+' = '+remaining.toFixed(6)+' वर्ष। अध्ययन नोटअनुसार १२ महिना/वर्ष, ३० दिन/महिना; नजिकको पूर्ण दिन।');
 });
 
 
