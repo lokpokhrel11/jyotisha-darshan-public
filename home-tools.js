@@ -10,13 +10,32 @@ const number=id=>$(id).value.trim()===''?NaN:Number($(id).value);
 const valid=(v,min,max)=>Number.isFinite(v)&&v>=min&&v<=max;
 const base=$('lsDistrict'),dest=$('htDistrict');
 if(base&&dest){for(const child of base.children){if(child.tagName==='OPTGROUP')dest.appendChild(child.cloneNode(true));}}
+const sunriseMode=$('htSunriseMode');
+function sunriseModeChange(){for(const [mode,id] of [['district','htDistrictFields'],['longitude','htLongitudeFields'],['manual','htManualFields']])$(id).hidden=sunriseMode.value!==mode;invalidate('htSunriseOut');}
+sunriseMode.addEventListener('change',sunriseModeChange);
 $('htSunriseGo').addEventListener('click',()=>{
- const v=$('htSunrise').value,offset=$('htDistrict').value;
- if(!/^\d{2}:\d{2}$/.test(v)||!/^[-+]\d{2}:\d{2}$/.test(offset)){out('htSunriseOut','काठमाडौँको समय र जिल्ला छान्नुहोस्।');return;}
- const [h,m]=v.split(':').map(Number),sign=offset[0]==='-'?-1:1,[om,os]=offset.slice(1).split(':').map(Number);
- const seconds=(h*60+m)*60-sign*(om*60+os);
+ const clock=$('htSunrise').value,mode=sunriseMode.value;
+ const t=timeSeconds(clock);
+ if(t===null){out('htSunriseOut','पात्रोको सूर्योदय जाँच्नुहोस्।');return;}
+ let correction;
+ if(mode==='longitude'){
+  const deg=number('htLonDeg'),min=number('htLonMin'),sec=number('htLonSec');
+  if(!Number.isInteger(deg)||!valid(deg,0,179)||!Number.isInteger(min)||!valid(min,0,59)||!valid(sec,0,59)){out('htSunriseOut','पूर्वी देशान्तरको अंश, कला र विकला जाँच्नुहोस्।');return;}
+  correction=Math.round((deg*3600+min*60+sec-(85*3600+19*60))/15);
+ }else{
+  const v=$(mode==='manual'?'htManualOffset':'htDistrict').value.trim().replace(/[०-९]/g,c=>String('०१२३४५६७८९'.indexOf(c)));
+  if(!/^[+-]\d{1,2}:\d{2}$/.test(v)){out('htSunriseOut','जिल्ला वा चिह्नसहितको समयान्तर (+मिनेट:सेकेन्ड वा −मिनेट:सेकेन्ड) राख्नुहोस्।');return;}
+  const [m,sec]=v.slice(1).split(':').map(Number);
+  if(sec>=60){out('htSunriseOut','समयान्तरको सेकेन्ड ०–५९ हुनुपर्छ।');return;}
+  correction=(v[0]==='-'?-1:1)*(m*60+sec);
+  if(mode==='manual'&&$('htOffsetReference').value==='standard')correction+=224;
+ }
+ const seconds=t-correction;
  if(seconds<0||seconds>=86400){out('htSunriseOut','समय मान्य दायराबाहिर छ।');return;}
- const clock=digits(Math.floor(seconds/3600))+':'+digits(Math.floor(seconds%3600/60))+':'+digits(seconds%60);out('htSunriseOut','स्थानीय सूर्योदय: '+clock+' (काठमाडौँसँगको समयान्तर '+offset+')');$('htLocalSunrise').value=clock;changed('htLocalSunrise');
+ const result=digits(Math.floor(seconds/3600))+':'+digits(Math.floor(seconds%3600/60))+':'+digits(seconds%60);
+ const offset=(correction<0?'-':'+')+digits(Math.floor(Math.abs(correction)/60))+':'+digits(Math.abs(correction)%60);
+ out('htSunriseOut','स्थानीय सूर्योदय: '+result+' (काठमाडौँसँगको समयान्तर '+offset+')। देशान्तरमा आधारित परम्परागत अनुमान।');
+ $('htLocalSunrise').value=result;changed('htLocalSunrise');
 });
 $('htGhadiGo').addEventListener('click',()=>{
  const h=number('htHours'),m=number('htMinutes'),sec=number('htSeconds');
@@ -141,5 +160,5 @@ $('htNameGo').addEventListener('click',()=>{
  out('htNameOut','एक चरणको अवधि: '+fmtGP(b/4)+' (प्रदर्शित मान नजिकको आधा विपलासम्म) । भयात: '+fmtGP(a)+'। '+namingData[i].name+' · चरण '+(r.p+1)+' · नामाक्षर: '+r.sy+' · जन्मराशि: '+namingSigns[r.r]+' · राशिस्वामी: '+namingLords[r.r]+' · जन्म दशास्वामी: '+namingData[i].lord+'।'+(r.boundary?' ठीक चरण-सीमा: अध्ययन नोटको विधिअनुसार यही चरणको अन्तिम सीमा मानिएको छ। कोणीय विधिमा अर्को चरण सुरु हुन्छ।':'')+' भयात, भभोग र दशास्वामी दशा शेष गणनामा सारिएका छन्।');
 });
 
-for(const [ids,result] of [[['htSunrise','htDistrict'],'htSunriseOut'],[['htHours','htMinutes','htSeconds'],'htGhadiOut'],[['htBirth','htLocalSunrise','htPrevious'],'htIstOut'],[['htBhayat','htBhavog','htLord'],'htDashaOut'],[['htSun','htMoon'],'htTithiOut'],[['htNakDegree'],'htNakOut'],[['htNameNak','htNameA','htNameB'],'htNameOut']])for(const id of ids){$(id).addEventListener('input',()=>invalidate(result));$(id).addEventListener('change',()=>invalidate(result));}
+for(const [ids,result] of [[['htSunrise','htDistrict','htSunriseMode','htLonDeg','htLonMin','htLonSec','htManualOffset','htOffsetReference'],'htSunriseOut'],[['htHours','htMinutes','htSeconds'],'htGhadiOut'],[['htBirth','htLocalSunrise','htPrevious'],'htIstOut'],[['htBhayat','htBhavog','htLord'],'htDashaOut'],[['htSun','htMoon'],'htTithiOut'],[['htNakDegree'],'htNakOut'],[['htNameNak','htNameA','htNameB'],'htNameOut']])for(const id of ids){$(id).addEventListener('input',()=>invalidate(result));$(id).addEventListener('change',()=>invalidate(result));}
 })();
