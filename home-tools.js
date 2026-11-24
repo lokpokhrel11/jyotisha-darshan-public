@@ -3,6 +3,8 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const out=(id,s)=>{$(id).textContent=s;};
+const invalidate=id=>out(id,'मान परिवर्तन भएको छ। पुनः गणना गर्नुहोस्।');
+const changed=id=>$(id).dispatchEvent(new Event('input',{bubbles:true}));
 const digits=n=>String(n).padStart(2,'0');
 const number=id=>$(id).value.trim()===''?NaN:Number($(id).value);
 const valid=(v,min,max)=>Number.isFinite(v)&&v>=min&&v<=max;
@@ -14,7 +16,7 @@ $('htSunriseGo').addEventListener('click',()=>{
  const [h,m]=v.split(':').map(Number),sign=offset[0]==='-'?-1:1,[om,os]=offset.slice(1).split(':').map(Number);
  const seconds=(h*60+m)*60-sign*(om*60+os);
  if(seconds<0||seconds>=86400){out('htSunriseOut','समय मान्य दायराबाहिर छ।');return;}
- const clock=digits(Math.floor(seconds/3600))+':'+digits(Math.floor(seconds%3600/60))+':'+digits(seconds%60);out('htSunriseOut','स्थानीय सूर्योदय: '+clock+' (काठमाडौँसँगको समयान्तर '+offset+')');$('htLocalSunrise').value=clock;
+ const clock=digits(Math.floor(seconds/3600))+':'+digits(Math.floor(seconds%3600/60))+':'+digits(seconds%60);out('htSunriseOut','स्थानीय सूर्योदय: '+clock+' (काठमाडौँसँगको समयान्तर '+offset+')');$('htLocalSunrise').value=clock;changed('htLocalSunrise');
 });
 $('htGhadiGo').addEventListener('click',()=>{
  const h=number('htHours'),m=number('htMinutes'),sec=number('htSeconds');
@@ -69,7 +71,7 @@ function initNakCalculator(prefix,which){
   last=null;use.hidden=true;out(result,'पञ्चाङ्गमा दिइएको नक्षत्रको अन्त्य-मान घडी/पलामा राख्नुहोस्।');
  }
  mode.addEventListener('change',change);
- mode.closest('.home-tool-card').addEventListener('input',()=>{last=null;use.hidden=true;});
+ mode.closest('.home-tool-card').addEventListener('input',()=>{last=null;use.hidden=true;invalidate(result);});
  $(prefix+'Go').addEventListener('click',()=>{
   last=null;use.hidden=true;
   const kind=mode.value,ist=which==='a'?inputGP(prefix+'Ishta'):null;
@@ -100,6 +102,7 @@ function initNakCalculator(prefix,which){
    b=7200-prev+ending;
    formula=which==='a'?'(६० − गत नक्षत्र अन्त्य-मान) + इष्टकाल'+(day==='second'?' + ६०':''):'(६० − गत नक्षत्र अन्त्य-मान) + ६० + दोस्रो सूर्योदयपछिको अन्त्य-मान';
   }
+  a=Math.round(a*120)/120;b=Math.round(b*120)/120;
   if(!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<=0||(which==='b'&&a>b)||(which==='a'&&kind!=='two'&&a>b)){
    out(result,'नतिजा मान्य छैन: ० ≤ भयात < भभोग हुनुपर्छ। नक्षत्र अन्त्य-मान, जन्मको अवस्था र इष्टकाल जाँच्नुहोस्।');return;
   }
@@ -112,7 +115,7 @@ function initNakCalculator(prefix,which){
  use.addEventListener('click',()=>{
   if(last===null)return;
   const target=which==='a'?'htBhayat':'htBhavog';
-  const v=Math.round(last*120)/2;$(target).value=Math.floor(v/3600)+'/'+digits(Math.floor(v%3600/60))+(v%60?'/'+digits(v%60):'');$(which==='a'?'htNameA':'htNameB').value=$(target).value;
+  const v=Math.round(last*120)/2;$(target).value=Math.floor(v/3600)+'/'+digits(Math.floor(v%3600/60))+(v%60?'/'+digits(v%60):'');$(which==='a'?'htNameA':'htNameB').value=$(target).value;invalidate('htNameOut');invalidate('htDashaOut');
   out(result,(which==='a'?'भयात':'भभोग')+' दशा शेष र नामकरण गणनायन्त्रमा सारिएको छ।');
  });
 }
@@ -138,4 +141,5 @@ $('htNameGo').addEventListener('click',()=>{
  out('htNameOut','एक चरणको अवधि: '+fmtGP(b/4)+' (प्रदर्शित मान नजिकको आधा विपलासम्म) । भयात: '+fmtGP(a)+'। '+namingData[i].name+' · चरण '+(r.p+1)+' · नामाक्षर: '+r.sy+' · जन्मराशि: '+namingSigns[r.r]+' · राशिस्वामी: '+namingLords[r.r]+' · जन्म दशास्वामी: '+namingData[i].lord+'।'+(r.boundary?' ठीक चरण-सीमा: अध्ययन नोटको विधिअनुसार यही चरणको अन्तिम सीमा मानिएको छ। कोणीय विधिमा अर्को चरण सुरु हुन्छ।':'')+' भयात, भभोग र दशास्वामी दशा शेष गणनामा सारिएका छन्।');
 });
 
+for(const [ids,result] of [[['htSunrise','htDistrict'],'htSunriseOut'],[['htHours','htMinutes','htSeconds'],'htGhadiOut'],[['htBirth','htLocalSunrise','htPrevious'],'htIstOut'],[['htBhayat','htBhavog','htLord'],'htDashaOut'],[['htSun','htMoon'],'htTithiOut'],[['htNakDegree'],'htNakOut'],[['htNameNak','htNameA','htNameB'],'htNameOut']])for(const id of ids){$(id).addEventListener('input',()=>invalidate(result));$(id).addEventListener('change',()=>invalidate(result));}
 })();
