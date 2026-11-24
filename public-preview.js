@@ -56,7 +56,12 @@ const questions=[
  {unit:'१.५',q:'विष्कुम्भादि योग सूचीमा शुभ कुन क्रममा छ?',options:['२३','२४','२५'],correct:0,why:'२३ शुभ र २४ शुक्ल हुन्।'},
  {unit:'१.६',q:'आनन्दादि योग कति छन्?',options:['२७','२८','३०'],correct:1,why:'आनन्दादि २८ र विष्कुम्भादि २७ योगका अलग सूची हुन्।'},
  {unit:'१.७',q:'करणका प्रकार जम्मा कति छन्?',options:['७','११','१५'],correct:1,why:'बव, बालव, कौलव, तैतिल, गर, वणिज र विष्टि सात चर करण हुन्। शकुनि, चतुष्पद, नाग र किंस्तुघ्न चार स्थिर करण हुन्। त्यसैले जम्मा ११ प्रकार हुन्छन्।'},
- {unit:'१.८',q:'अयन र ऋतुका संख्या क्रमशः कति?',options:['२ र ६','६ र २','२ र १२'],correct:0,why:'दुई अयन र छ ऋतु मानिन्छन्।'}
+ {unit:'१.८',q:'अयन र ऋतुका संख्या क्रमशः कति?',options:['२ र ६','६ र २','२ र १२'],correct:0,why:'दुई अयन र छ ऋतु मानिन्छन्।'},
+{"unit":"१.२क","q":"सूर्यको भोगांश ३५०° र चन्द्रमाको १४° भए चन्द्र–सूर्य कोणीय अन्तर कति हुन्छ?","options":["२४°","३३६°","१४°"],"correct":0,"why":"१४ − ३५० = −३३६°। ३६०° जोड्दा २४° हुन्छ।"},
+{"unit":"१.२क","q":"चन्द्र–सूर्य कोणीय अन्तर ठीक १८०° भए कुन तिथि सुरु हुन्छ?","options":["पूर्णिमा","कृष्ण प्रतिपदा","शुक्ल प्रतिपदा"],"correct":1,"why":"१८० ÷ १२ = १५ तिथि पूरा हुन्छन्। त्यसैले कृष्ण प्रतिपदा सुरु हुन्छ।"},
+{"unit":"१.४","q":"एक नक्षत्रको कोणीय विस्तार कति हुन्छ?","options":["१२°","३°२०′","१३°२०′"],"correct":2,"why":"३६०° ÷ २७ = १३°२०′।"},
+{"unit":"१.४","q":"एक चरणको कोणीय विस्तार कति हुन्छ?","options":["३°२०′","३°३०′","१३°२०′"],"correct":0,"why":"१३°२०′ = ८०० कला। ८०० ÷ ४ = २०० कला = ३°२०′।"},
+{"unit":"१.४","q":"चन्द्रमाको निरयण भोगांश ठीक १३°२०′ भए कुन नक्षत्र र चरण सुरु हुन्छ?","options":["अश्विनी चौथो","भरणी पहिलो","भरणी दोस्रो"],"correct":1,"why":"पहिलो नक्षत्रको १३°२०′ पूरा भएपछि भरणीको पहिलो चरण सुरु हुन्छ। यो कोणीय गणनाको नियम हो।"}
 ];
 let questionIndex=0,correctCount=0,answered=false,unitScores={};
 function renderQuestion(){
@@ -72,7 +77,7 @@ function renderQuestion(){
   $('quizOptions').querySelectorAll('button').forEach((x,j)=>{x.disabled=true;if(j===q.correct){x.classList.add('correct-answer');x.setAttribute('aria-label',x.textContent+' — सही उत्तर')}else if(j===i){x.classList.add('incorrect-answer')}});
   $('nextQuestion').hidden=questionIndex===questions.length-1;
   if(questionIndex===questions.length-1){
-   const passed=correctCount>=12;
+   const passed=correctCount>=Math.ceil(questions.length*0.8);
    $('quizFeedback').textContent+=` अन्तिम नतिजा: ${correctCount}/${questions.length}। `+(passed?'प्रारम्भिक मूल्याङ्कन पूरा भयो।':'पुनः अध्ययन गरेर प्रयास गर्नुहोस्।');
    $('unitBreakdown').textContent='खण्डअनुसार: '+Object.entries(unitScores).map(([unit,v])=>`${unit}: ${v.right}/${v.total}`).join(' · ');
    $('restartQuiz').hidden=false;
@@ -99,23 +104,24 @@ const tithiGroups=['नन्दा','भद्रा','जया','रिक्
 for(let i=1;i<=15;i++)$('tithiNumber').add(new Option(`${i} औँ तिथि`,String(i)));
 function showTithiGroup(){const n=Number($('tithiNumber').value);$('tithiGroupResult').textContent=`${n} औँ तिथि: ${tithiGroups[(n-1)%5]} समूह।`;}
 $('tithiNumber').addEventListener('change',showTithiGroup);showTithiGroup();
-function validAngle(id){const v=Number($(id).value);return $(id).value.trim()!==''&&Number.isFinite(v)&&v>=0&&v<360?v:null;}
+const chapterAngle=v=>{v=v.trim().replace(/[०-९]/g,c=>String('०१२३४५६७८९'.indexOf(c)));if(/^\d+(?:\.\d+)?$/.test(v)){const n=Number(v);return n<360?Math.min(1295999999,Math.round(n*3600000)):null;}const p=v.split('/');if(p.length!==4||p.some(x=>!/^\d+$/.test(x)))return null;const [r,d,m,sec]=p.map(Number);return r<12&&d<30&&m<60&&sec<60?((r*30+d)*3600+m*60+sec)*1000:null;};
+function validAngle(id){return chapterAngle($(id).value);}
 $('nakCalculate').addEventListener('click',()=>{
- const d=validAngle('nakDegree');if(d===null){$('nakResult').textContent='० देखि ३६० भन्दा कम अंश लेख्नुहोस्।';return;}
- const globalPada=Math.floor((d+1e-10)/(360/108));const n=Math.floor(globalPada/4)+1;const pad=globalPada%4+1;
- $('nakResult').textContent=`कुल भोगांश ${d.toFixed(2)}° ÷ ३°२०′ (एक पाउ) गर्दा ${globalPada} पूरा पाउ बितेका छन्। त्यसैले नक्षत्र क्रम ${n} र त्यसको ${pad} औँ पाउ चलिरहेको छ। यो २७ नक्षत्रको समान कोणीय विभाजनमा आधारित अभ्यास हो।`;
+ const d=validAngle('nakDegree');if(d===null){$('nakResult').textContent='दशमलव अंश वा राशि/अंश/कला/विकला (राशि ०–११) राख्नुहोस्।';return;}
+ const globalPada=Math.floor(d/12000000);const n=Math.floor(globalPada/4)+1;const pad=globalPada%4+1;
+ $('nakResult').textContent=`कुल भोगांश ${(d/3600000).toFixed(6)}° ÷ ३°२०′ (एक पाउ) गर्दा ${globalPada} पूरा पाउ बितेका छन्। त्यसैले नक्षत्र क्रम ${n} र त्यसको ${pad} औँ पाउ चलिरहेको छ। यो २७ नक्षत्रको समान कोणीय विभाजनमा आधारित अभ्यास हो। ${d%12000000===0?'ठीक चरण-सीमामा नयाँ चरण सुरु हुन्छ।':''}`;
 });
 $('tithiCalculate').addEventListener('click',()=>{
  const sun=validAngle('sunLongitude'),moon=validAngle('moonLongitude');
  if(sun===null||moon===null){$('tithiCalcResult').textContent='दुवै भोगांश ० देखि ३६० भन्दा कम हुनुपर्छ।';return;}
- const diff=(moon-sun+360)%360;const idx=Math.floor(diff/12);const paksha=idx<15?'शुक्ल':'कृष्ण';
+ const delta=(moon-sun+1296000000)%1296000000;const diff=delta/3600000;const idx=Math.floor(delta/43200000);const paksha=idx<15?'शुक्ल':'कृष्ण';
  const n=idx%15+1;const names=['प्रतिपदा','द्वितीया','तृतीया','चतुर्थी','पञ्चमी','षष्ठी','सप्तमी','अष्टमी','नवमी','दशमी','एकादशी','द्वादशी','त्रयोदशी','चतुर्दशी'];
  const name=n===15?(paksha==='शुक्ल'?'पूर्णिमा':'औँसी'):names[n-1];
- const completed=Math.floor(diff/12);const remainder=diff-completed*12;
- const boundary=Math.abs(remainder)<1e-9||Math.abs(remainder-12)<1e-9;
+ const completed=idx;const remainder=(delta%43200000)/3600000;
+ const boundary=delta%43200000===0;
  const degreesIntoTithi=boundary?0:remainder;
- const elapsed=boundary?'ठीक सीमामा नयाँ तिथि सुरु हुन्छ।':completed+' वटा १२° का खण्ड पूरा भएका छन्; चालू तिथिभित्र '+degreesIntoTithi.toFixed(2)+'° बितेको छ।';
- $('tithiCalcResult').textContent='चन्द्र '+moon.toFixed(2)+'° − सूर्य '+sun.toFixed(2)+'° = '+(moon-sun).toFixed(2)+'°; ३६०° चक्रमा मिलाउँदा '+diff.toFixed(2)+'°। '+elapsed+' त्यसैले '+paksha+' '+name+' (क्रम '+n+')। '+(boundary?'यो गणितीय सीमा हो; वास्तविक तिथि परिवर्तनको घडी निकाल्न समयसहितको खगोलीय गणना चाहिन्छ।':'यो दिइएका काल्पनिक भोगांशको अभ्यास हो, आजको पञ्चाङ्ग होइन।');
+ const elapsed=boundary?'ठीक सीमामा नयाँ तिथि सुरु हुन्छ।':completed+' वटा १२° का खण्ड पूरा भएका छन्; चालू तिथिभित्र '+degreesIntoTithi.toFixed(6)+'° बितेको छ।';
+ $('tithiCalcResult').textContent='चन्द्र '+(moon/3600000).toFixed(6)+'° − सूर्य '+(sun/3600000).toFixed(6)+'° = '+((moon-sun)/3600000).toFixed(6)+'°; ३६०° चक्रमा मिलाउँदा '+diff.toFixed(6)+'°। '+elapsed+' त्यसैले '+paksha+' '+name+' (क्रम '+n+')। '+(boundary?'यो गणितीय सीमा हो; वास्तविक तिथि परिवर्तनको घडी निकाल्न समयसहितको खगोलीय गणना चाहिन्छ।':'यो दिइएका काल्पनिक भोगांशको अभ्यास हो, आजको पञ्चाङ्ग होइन।');
 });
 // Source-verified Chapter 1 lists (PDF pp. 8–10).
 const nakNames=['अश्विनी','भरणी','कृत्तिका','रोहिणी','मृगशिरा','आर्द्रा','पुनर्वसु','पुष्य (तिष्य)','आश्लेषा','मघा','पूर्वाफाल्गुनी','उत्तराफाल्गुनी','हस्त','चित्रा','स्वाती','विशाखा','अनुराधा','ज्येष्ठा','मूल','पूर्वाषाढा','उत्तराषाढा','श्रवण','धनिष्ठा','शतभिषा','पूर्वाभाद्रपदा','उत्तराभाद्रपदा','रेवती'];
