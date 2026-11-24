@@ -45,7 +45,7 @@ $('htIstGo').addEventListener('click',()=>{
  const elapsed=birth-sun+(prev?86400:0);
  if(elapsed<0||elapsed>=86400){out('htIstOut','इष्टकालको अवधि २४ घण्टाभन्दा कम हुनुपर्छ।');return;}
  const halfVipala=elapsed*5,gh=Math.floor(halfVipala/7200),pa=Math.floor((halfVipala%7200)/120),vi=(halfVipala%120)/2;
- out('htIstOut',gh+' घडी '+pa+' पला '+vi+' विपला'+(vi?' · कापीको पूर्ण पला पद्धति: '+gh+'/'+digits(pa):''));
+ out('htIstOut',gh+' घडी '+pa+' पला '+vi+' विपला'+(vi?' · कापीको पूर्ण पला पद्धति: '+gh+'/'+digits(pa):'')+'। भयात गणनामा मान सारिएको छ।');$('htBYIshta').value=gh+'/'+digits(pa)+(vi?'/'+vi:'');$('htBYIshta').dispatchEvent(new Event('input',{bubbles:true}));
 });
 const parseGP=v=>{v=v.replace(/[०-९]/g,c=>String('०१२३४५६७८९'.indexOf(c)));const m=/^\s*(\d+)\s*\/\s*(\d+)(?:\s*\/\s*(\d+(?:\.5)?))?\s*$/.exec(v);if(!m)return null;const g=+m[1],p=+m[2],vi=+(m[3]||0);return g<=120&&p<60&&vi<60&&(g<120||p+vi===0)?g*60+p+vi/60:null;};
 const dashaYears={sun:6,moon:10,mars:7,rahu:18,jupiter:16,saturn:19,mercury:17,ketu:7,venus:20};
@@ -112,8 +112,8 @@ function initNakCalculator(prefix,which){
  use.addEventListener('click',()=>{
   if(last===null)return;
   const target=which==='a'?'htBhayat':'htBhavog';
-  const v=Math.round(last*120)/2;$(target).value=Math.floor(v/3600)+'/'+digits(Math.floor(v%3600/60))+(v%60?'/'+digits(v%60):'');
-  out(result,(which==='a'?'भयात':'भभोग')+' दशा शेष गणनायन्त्रमा सारिएको छ।');
+  const v=Math.round(last*120)/2;$(target).value=Math.floor(v/3600)+'/'+digits(Math.floor(v%3600/60))+(v%60?'/'+digits(v%60):'');$(which==='a'?'htNameA':'htNameB').value=$(target).value;
+  out(result,(which==='a'?'भयात':'भभोग')+' दशा शेष र नामकरण गणनायन्त्रमा सारिएको छ।');
  });
 }
 initNakCalculator('htBY','a');
