@@ -14,7 +14,7 @@ $('htSunriseGo').addEventListener('click',()=>{
  const [h,m]=v.split(':').map(Number),sign=offset[0]==='-'?-1:1,[om,os]=offset.slice(1).split(':').map(Number);
  const seconds=(h*60+m)*60-sign*(om*60+os);
  if(seconds<0||seconds>=86400){out('htSunriseOut','समय मान्य दायराबाहिर छ।');return;}
- const rounded=Math.min(1439,Math.floor((seconds+30)/60));out('htSunriseOut','स्थानीय सूर्योदय: '+digits(Math.floor(rounded/60))+':'+digits(rounded%60));
+ const clock=digits(Math.floor(seconds/3600))+':'+digits(Math.floor(seconds%3600/60))+':'+digits(seconds%60);out('htSunriseOut','स्थानीय सूर्योदय: '+clock+' (काठमाडौँसँगको समयान्तर '+offset+')');$('htLocalSunrise').value=clock;
 });
 $('htGhadiGo').addEventListener('click',()=>{
  const h=number('htHours'),m=number('htMinutes');
@@ -43,13 +43,13 @@ $('htIstGo').addEventListener('click',()=>{
  const birth=timeSeconds($('htBirth').value),sun=timeSeconds($('htLocalSunrise').value),prev=$('htPrevious').value==='previous';
  if(birth===null||sun===null){out('htIstOut','जन्म समय र स्थानीय सूर्योदय जाँच्नुहोस्।');return;}
  if(!prev&&birth<sun){out('htIstOut','सूर्योदयअघिको जन्म हो भने अघिल्लो दिनको सूर्योदय विकल्प छान्नुहोस्।');return;}
- if(prev&&birth>=sun){out('htIstOut','सूर्योदयअघिको विकल्पमा जन्मको घडी सूर्योदयभन्दा अघि हुनुपर्छ।');return;}
+ 
  const elapsed=birth-sun+(prev?86400:0);
  if(elapsed<0||elapsed>=86400){out('htIstOut','इष्टकालको अवधि २४ घण्टाभन्दा कम हुनुपर्छ।');return;}
  const halfVipala=elapsed*5,gh=Math.floor(halfVipala/7200),pa=Math.floor((halfVipala%7200)/120),vi=(halfVipala%120)/2;
- out('htIstOut',gh+' घडी '+pa+' पला '+vi+' विपला');
+ out('htIstOut',gh+' घडी '+pa+' पला '+vi+' विपला'+(vi?' · कापीको पूर्ण पला पद्धति: '+gh+'/'+digits(pa):''));
 });
-const parseGP=v=>{const m=/^\s*(\d+)\s*\/\s*(\d+)\s*$/.exec(v);if(!m)return null;const g=+m[1],p=+m[2];return g<=120&&p<60&&(g<120||p===0)?g*60+p:null;};
+const parseGP=v=>{v=v.replace(/[०-९]/g,c=>String('०१२३४५६७८९'.indexOf(c)));const m=/^\s*(\d+)\s*\/\s*(\d+)(?:\s*\/\s*(\d+))?\s*$/.exec(v);if(!m)return null;const g=+m[1],p=+m[2],vi=+(m[3]||0);return g<=120&&p<60&&vi<60&&(g<120||p+vi===0)?g*60+p+vi/60:null;};
 const dashaYears={sun:6,moon:10,mars:7,rahu:18,jupiter:16,saturn:19,mercury:17,ketu:7,venus:20};
 $('htDashaGo').addEventListener('click',()=>{
  const a=parseGP($('htBhayat').value),b=parseGP($('htBhavog').value),years=dashaYears[$('htLord').value];
@@ -61,7 +61,7 @@ $('htDashaGo').addEventListener('click',()=>{
 });
 
 
-const fmtGP=n=>Math.floor(n/60)+' घडी '+String(n%60).padStart(2,'0')+' पला';
+const fmtGP=n=>{const v=Math.round(n*60);return Math.floor(v/3600)+' घडी '+digits(Math.floor(v%3600/60))+' पला'+(v%60?' '+digits(v%60)+' विपला':'');};
 const inputGP=id=>{const v=parseGP($(id).value);return v!==null&&v<=3600?v:null;};
 function initNakCalculator(prefix,which){
  const mode=$(prefix+'Case'),result=prefix+'Out',use=$(prefix+'Use');
@@ -101,7 +101,7 @@ function initNakCalculator(prefix,which){
    b=7200-prev+ending;
    formula=which==='a'?'(६० − गत नक्षत्र अन्त्य-मान) + इष्टकाल'+(day==='second'?' + ६०':''):'(६० − गत नक्षत्र अन्त्य-मान) + ६० + दोस्रो सूर्योदयपछिको अन्त्य-मान';
   }
-  if(!Number.isInteger(a)||!Number.isInteger(b)||a<0||b<=0||(which==='b'&&a>b)||(which==='a'&&kind!=='two'&&a>b)){
+  if(!Number.isFinite(a)||!Number.isFinite(b)||a<0||b<=0||(which==='b'&&a>b)||(which==='a'&&kind!=='two'&&a>b)){
    out(result,'नतिजा मान्य छैन: ० ≤ भयात < भभोग हुनुपर्छ। नक्षत्र अन्त्य-मान, जन्मको अवस्था र इष्टकाल जाँच्नुहोस्।');return;
   }
   if(which==='a'&&a===b){out(result,'नक्षत्र समाप्तिको ठीक सीमा हो। अध्ययन नोटको वर्गीकरणअनुसार अवस्था १ मानिए पनि जन्म नक्षत्र र दशास्वामी पुष्टि नगरी दशा शेषमा नसार्नुहोस्।');return;}
@@ -113,7 +113,7 @@ function initNakCalculator(prefix,which){
  use.addEventListener('click',()=>{
   if(last===null)return;
   const target=which==='a'?'htBhayat':'htBhavog';
-  $(target).value=Math.floor(last/60)+'/'+String(last%60).padStart(2,'0');
+  const v=Math.round(last*60);$(target).value=Math.floor(v/3600)+'/'+digits(Math.floor(v%3600/60))+(v%60?'/'+digits(v%60):'');
   out(result,(which==='a'?'भयात':'भभोग')+' दशा शेष गणनायन्त्रमा सारिएको छ।');
  });
 }
