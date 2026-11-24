@@ -17,9 +17,9 @@ $('htSunriseGo').addEventListener('click',()=>{
  const clock=digits(Math.floor(seconds/3600))+':'+digits(Math.floor(seconds%3600/60))+':'+digits(seconds%60);out('htSunriseOut','स्थानीय सूर्योदय: '+clock+' (काठमाडौँसँगको समयान्तर '+offset+')');$('htLocalSunrise').value=clock;
 });
 $('htGhadiGo').addEventListener('click',()=>{
- const h=number('htHours'),m=number('htMinutes');
- if(!Number.isInteger(h)||!Number.isInteger(m)||!valid(h,0,23)||!valid(m,0,59)){out('htGhadiOut','घण्टा र मिनेट जाँच्नुहोस्।');return;}
- const vipala=(h*60+m)*150,gh=Math.floor(vipala/3600),pa=Math.floor(vipala%3600/60),vi=vipala%60;
+ const h=number('htHours'),m=number('htMinutes'),sec=number('htSeconds');
+ if(!Number.isInteger(h)||!Number.isInteger(m)||!valid(h,0,23)||!valid(m,0,59)||!Number.isInteger(sec)||!valid(sec,0,59)){out('htGhadiOut','घण्टा, मिनेट र सेकेन्ड जाँच्नुहोस्।');return;}
+ const vipala=((h*60+m)*60+sec)*2.5,gh=Math.floor(vipala/3600),pa=Math.floor(vipala%3600/60),vi=vipala%60;
  out('htGhadiOut',gh+' घडी '+pa+' पला '+vi+' विपला');
 });
 $('htTithiGo').addEventListener('click',()=>{
