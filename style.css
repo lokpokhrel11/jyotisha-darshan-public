@@ -2236,3 +2236,12 @@ body.chapter-focus .chapter-editorial-hero[id]{scroll-margin-top:var(--chapter-a
 :root[data-theme="light"] .public-learning :is(.section .eyebrow,.home-tool-tag,.exam-shell .note) {
  color:#6e481c!important;
 }
+
+/* Optional study references stay folded until requested. */
+.note-update { margin-block: 1rem; }
+.note-update > summary { cursor: pointer; font-weight: 700; }
+.note-update[open] > summary { margin-bottom: .75rem; }
+.note-update .table-scroll { overflow-x: auto; }
+.note-update th, .note-update td { text-align: start; }
+.note-update table { min-width: max-content; }
+.note-update :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
